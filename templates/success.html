@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>TCU Management</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: url("https://static.vecteezy.com/system/resources/previews/009/831/146/non_2x/banner-web-template-abstract-blue-and-golden-wave-curved-lines-overlapping-layer-design-on-dark-blue-background-luxury-style-vector.jpg");
+            background-size: cover;
+            background-position: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .panel {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            width: 450px;
+            max-width: 90%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #004085;
+            font-size: 24px;
+            font-weight: bold;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Estilo para alinear los labels y campos */
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-row label {
+            flex: 1;
+            text-align: left;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-row input,
+        .form-row select {
+            flex: 2;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .resultado {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f1f1f1;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <h1>Solicitud de TCU</h1>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <!-- Este bucle de Django pone cada campo en su fila -->
+            {% for field in form %}
+                <div class="form-row">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                </div>
+            {% endfor %}
+
+            <button type="submit">Buscar</button>
+        </form>
+
+        {% if resultado %}
+            <div class="resultado">
+                {{ resultado }}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
