@@ -1,0 +1,210 @@
+<!-- templates/solicitud.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Crear Solicitud TCU</title>
+<style>
+body{font-family:Arial;background:#f0f2f5;padding:24px}
+.panel{max-width:900px;margin:24px auto;background:white;padding:20px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+.section{border:1px solid #e6e9ee;padding:12px;border-radius:6px;margin-bottom:12px}
+.section h3{margin:0 0 10px 0}
+.field-row{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+.field-row label{width:180px;font-weight:600}
+.field-row input, .field-row select, .field-row textarea{flex:1;padding:8px;border:1px solid #ccd0d6;border-radius:6px}
+textarea{min-height:80px}
+.button{padding:10px 16px;background:#007bff;color:#fff;border:none;border-radius:6px;cursor:pointer}
+.button[disabled]{opacity:0.6;cursor:not-allowed}
+.floating-msg{position:fixed;top:20px;right:20px;z-index:9999;padding:12px 16px;border-radius:6px;background:#333;color:#fff;box-shadow:0 6px 16px rgba(0,0,0,0.2)}
+.floating-success{background: #2e7d32}
+.floating-error{background: #c62828}
+.small{font-size:13px;color:#666}
+.resultado-block{background:#fafafa;padding:8px;border-radius:6px;border:1px solid #eee}
+</style>
+</head>
+<body>
+<div class="panel">
+  <h2>Crear Solicitud - TCU</h2>
+
+  {% if error %}
+    <div class="section"><strong>Error:</strong> {{ error }}</div>
+  {% endif %}
+
+  <!-- Datos del Estudiante -->
+  <div class="section">
+    <h3>Datos del Estudiante</h3>
+    <div class="field-row"><label>Nombre</label><div class="resultado-block">{{ student.est_nombre }}</div></div>
+    <div class="field-row"><label>Identificación</label><div class="resultado-block">{{ student.est_identificacion }}</div></div>
+    <div class="field-row"><label>Carnet</label><div class="resultado-block">{{ student.est_carnet }}</div></div>
+    <div class="field-row"><label>Correo</label><div class="resultado-block">{{ student.est_correo }}</div></div>
+    <div class="field-row"><label>Teléfono</label><div class="resultado-block">{{ student.est_telefono }}</div></div>
+  </div>
+
+  <!-- Datos del Periodo -->
+  <div class="section">
+    <h3>Datos del Periodo</h3>
+    <div class="field-row">
+      <label>Período</label>
+      <select id="periodoSelector">
+        <option value="">-- Seleccione período --</option>
+        {% for p in periodos %}
+            <option value="{{ p }}">{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div id="periodoInfo">
+      <!-- info del periodo cargada por JS -->
+      <div class="field-row"><label>Nombre</label><div id="p_nombre" class="resultado-block small">-</div></div>
+      <div class="field-row"><label>Estado</label><div id="p_estado" class="resultado-block small">-</div></div>
+      <div class="field-row"><label>Año</label><div id="p_anio" class="resultado-block small">-</div></div>
+      <div class="field-row"><label>Fecha Inicio</label><div id="p_inicio" class="resultado-block small">-</div></div>
+      <div class="field-row"><label>Fecha Final</label><div id="p_fin" class="resultado-block small">-</div></div>
+    </div>
+  </div>
+
+  <!-- Datos de la Solicitud -->
+  <div class="section">
+    <h3>Datos de la Solicitud</h3>
+    <form id="solForm" enctype="multipart/form-data" method="post">
+      {% csrf_token %}
+      <!-- Estudiante (readonly) -->
+      <div class="field-row"><label>Nombre del Estudiante</label><input type="text" id="f_nombre" name="est_nombre" value="{{ student.est_nombre }}" readonly/></div>
+      <div class="field-row" style="display:none"><label>Identificación</label><input type="text" id="f_identificacion" name="est_identificacion" value="{{ student.est_identificacion }}" readonly/></div>
+
+      <!-- Periodo (readonly, sincronizado con selector) -->
+      <div class="field-row"><label>Periodo del TCU</label><input type="text" id="f_periodo" name="periodo" readonly/></div>
+
+      <div class="field-row"><label>Lugar del TCU</label><input type="text" id="f_lugar" name="lugar"/></div>
+      <div class="field-row"><label>Encargado del Estudiante</label><input type="text" id="f_encargado" name="encargado"/></div>
+      <div class="field-row"><label>Fecha de Solicitud</label><input type="text" id="f_fecha" name="fecha_solicitud" placeholder="DD/MM/AAAA"/></div>
+      <div class="field-row"><label>Estado</label>
+        <select id="f_estado" name="estado">
+          <option value="">-- Seleccione --</option>
+          <option>Pendiente</option>
+          <option>En Revisión</option>
+          <option>Aprobado</option>
+          <option>Rechazado</option>
+        </select>
+      </div>
+      <div class="field-row"><label>Observaciones</label><textarea id="f_observaciones" name="observaciones"></textarea></div>
+
+      <div class="field-row"><label>Documentos</label>
+        <input type="file" id="f_documentos" name="documentos" multiple accept=".pdf,application/pdf, .doc, .docx, .txt, .xls, .xlsx"/>
+      </div>
+
+      <div style="margin-top:12px;text-align:right">
+        <button type="button" id="btnCrear" class="button">Crear Solicitud</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- floating message -->
+<div id="msgBox" style="display:none" class="floating-msg"></div>
+
+<script>
+const periodoSelector = document.getElementById('periodoSelector');
+const f_periodo = document.getElementById('f_periodo');
+const btnCrear = document.getElementById('btnCrear');
+const msgBox = document.getElementById('msgBox');
+
+function showMsg(text, type='info', timeout=4000){
+    msgBox.style.display='block';
+    msgBox.className = 'floating-msg ' + (type==='ok' ? 'floating-success' : (type==='error' ? 'floating-error' : ''));
+    msgBox.innerText = text;
+    if(timeout>0){
+      setTimeout(()=> msgBox.style.display='none', timeout);
+    }
+}
+
+// cuando cambie el selector, actualizar f_periodo y consultar get_periodoinfo_api vía Django (misma app)
+periodoSelector?.addEventListener('change', async function(){
+    const sel = this.value;
+    f_periodo.value = sel;
+    if(!sel){
+        // limpiar campos
+        document.getElementById('p_nombre').innerText = '-';
+        document.getElementById('p_estado').innerText = '-';
+        document.getElementById('p_anio').innerText = '-';
+        document.getElementById('p_inicio').innerText = '-';
+        document.getElementById('p_fin').innerText = '-';
+        return;
+    }
+
+    try {
+        // Llamamos a Odoo proxy en Django (ruta: /get_periodoinfo_api/?nombre=xxx)
+        const resp = await fetch(`http://localhost:8069/api/get_periodoinfo_api?nombre=${encodeURIComponent(sel)}`);
+        if(!resp.ok){ showMsg("Error al obtener info del periodo", 'error'); return; }
+        const data = await resp.json();
+        // suponemos data es {name, estado, anio, fecha_inicio, fecha_fin}
+        document.getElementById('p_nombre').innerText = data.nombre || '-';
+        document.getElementById('p_estado').innerText = data.activo === true ? 'Activo' : 'Inactivo';
+        document.getElementById('btnCrear').disabled = data.activo === true ? false : true;
+        document.getElementById('p_anio').innerText = data.anno || '-';
+        document.getElementById('p_inicio').innerText = data.fecha_inicio || '-';
+        document.getElementById('p_fin').innerText = data.fecha_final || '-';
+    } catch (err) {
+        console.error(err);
+        showMsg("Error conectando para obtener información del periodo", 'error');
+    }
+});
+
+// validación simple antes de enviar
+function validarFormulario(){
+    const nombre = document.getElementById('f_nombre').value.trim();
+    const periodo = document.getElementById('f_periodo').value.trim();
+    const lugar = document.getElementById('f_lugar').value.trim();
+    const encargado = document.getElementById('f_encargado').value.trim();
+    const fecha = document.getElementById('f_fecha').value.trim();
+    const estado = document.getElementById('f_estado').value.trim();
+    const observ = document.getElementById('f_observaciones').value.trim();
+    const archivos = document.getElementById('f_documentos').files;
+
+    if(!nombre||!periodo||!lugar||!encargado||!observ){
+        return {ok:false, msg:"Complete todos los campos obligatorios: Nombre, Periodo, Lugar, Encargado y Observaciones."};
+    }
+
+    // validar fecha DD/MM/AAAA
+    const re = /^([0-3]\d)\/(0[1-9]|1[0-2])\/([1-9]\d{3})$/;
+    if(!re.test(fecha)) return {ok:false, msg:"Fecha inválida. Use formato DD/MM/AAAA."};
+
+    if(!estado) return {ok:false, msg:"Seleccione un Estado."};
+    if(!archivos || archivos.length===0) return {ok:false, msg:"Adjunte al menos un archivo."};
+
+    return {ok:true};
+}
+
+// manejar el click Crear Solicitud
+btnCrear.addEventListener('click', async function(){
+    const valid = validarFormulario();
+    if(!valid.ok){ showMsg(valid.msg, 'error', 6000); return; }
+
+    // armar FormData
+    const formElement = document.getElementById('solForm');
+    const fd = new FormData(formElement);
+
+    // enviar a vista Django que actúa de proxy: /crear_solicitud/
+    try {
+        const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const resp = await fetch('/crear_solicitud/', {
+            method: 'POST',
+            headers: {'X-CSRFToken': csrf},
+            body: fd
+        });
+        const data = await resp.json();
+        if(data.resultado === 'ok'){
+            showMsg("Solicitud creada satisfactoriamente. Redirigiendo...", 'ok', 3000);
+            setTimeout(()=> window.location.href = '/buscar/', 3200);
+        } else {
+            const detalle = data.detalle || "Error desconocido";
+            showMsg("No se pudo crear la solicitud: " + detalle, 'error', 0);
+        }
+    } catch (err) {
+        console.error(err);
+        showMsg("Error al enviar la solicitud al servidor", 'error', 0);
+    }
+});
+</script>
+</body>
+</html>
