@@ -5,21 +5,143 @@
 <meta charset="UTF-8">
 <title>Crear Solicitud TCU</title>
 <style>
-body{font-family:Arial;background:#f0f2f5;padding:24px}
-.panel{max-width:900px;margin:24px auto;background:white;padding:20px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
-.section{border:1px solid #e6e9ee;padding:12px;border-radius:6px;margin-bottom:12px}
-.section h3{margin:0 0 10px 0}
-.field-row{display:flex;gap:12px;align-items:center;margin-bottom:8px}
-.field-row label{width:180px;font-weight:600}
-.field-row input, .field-row select, .field-row textarea{flex:1;padding:8px;border:1px solid #ccd0d6;border-radius:6px}
-textarea{min-height:80px}
-.button{padding:10px 16px;background:#007bff;color:#fff;border:none;border-radius:6px;cursor:pointer}
-.button[disabled]{opacity:0.6;cursor:not-allowed}
-.floating-msg{position:fixed;top:20px;right:20px;z-index:9999;padding:12px 16px;border-radius:6px;background:#333;color:#fff;box-shadow:0 6px 16px rgba(0,0,0,0.2)}
-.floating-success{background: #2e7d32}
-.floating-error{background: #c62828}
-.small{font-size:13px;color:#666}
-.resultado-block{background:#fafafa;padding:8px;border-radius:6px;border:1px solid #eee}
+/* Fondo elegante */
+body {
+    font-family: 'Arial', sans-serif;
+    background-image: url('https://static.vecteezy.com/system/resources/previews/009/831/146/non_2x/banner-web-template-abstract-blue-and-golden-wave-curved-lines-overlapping-layer-design-on-dark-blue-background-luxury-style-vector.jpg');
+    background-size: cover;
+    background-position: center;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Panel principal */
+.panel {
+    background-color: rgba(255,255,255,0.95);
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+    width: 900px;
+    max-width: 95%;
+}
+
+/* Título */
+h2 {
+    text-align: center;
+    color: #004085;
+    margin-bottom: 24px;
+    font-size: 28px;
+    font-weight: bold;
+    border-bottom: 3px solid #007bff;
+    padding-bottom: 10px;
+}
+
+/* Secciones internas */
+.section {
+    border: 1px solid #e6e9ee;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+}
+
+/* Subtítulos */
+.section h3 {
+    margin: 0 0 12px 0;
+    color: #007bff;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Flex para Estudiante y Periodo lado a lado */
+.row-flex {
+    display: flex;
+    gap: 20px;
+}
+
+.col-left, .col-right {
+    flex: 1;
+}
+
+/* Campos y labels */
+.field-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.field-row label {
+    width: 150px;
+    font-weight: bold;
+    color: #333;
+}
+
+.field-row input,
+.field-row select,
+.field-row textarea {
+    flex: 1;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #ccd0d6;
+    font-size: 14px;
+}
+
+textarea {
+    min-height: 80px;
+}
+
+/* Botón centrado */
+.button {
+    display: block;
+    margin: 20px auto 0 auto;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    background-color: #007bff;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.button:hover {
+    background-color: #0056b3;
+}
+
+.button[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Resultados read-only */
+.resultado-block {
+    background: #fafafa;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #eee;
+    font-size: 14px;
+}
+
+/* Mensajes flotantes */
+.floating-msg {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    padding: 12px 16px;
+    border-radius: 6px;
+    background: #333;
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+.floating-success { background: #2e7d32; }
+.floating-error { background: #c62828; }
+.small { font-size: 13px; color: #666; }
+
 </style>
 </head>
 <body>
@@ -30,51 +152,48 @@ textarea{min-height:80px}
     <div class="section"><strong>Error:</strong> {{ error }}</div>
   {% endif %}
 
-  <!-- Datos del Estudiante -->
-  <div class="section">
-    <h3>Datos del Estudiante</h3>
-    <div class="field-row"><label>Nombre</label><div class="resultado-block">{{ student.est_nombre }}</div></div>
-    <div class="field-row"><label>Identificación</label><div class="resultado-block">{{ student.est_identificacion }}</div></div>
-    <div class="field-row"><label>Carnet</label><div class="resultado-block">{{ student.est_carnet }}</div></div>
-    <div class="field-row"><label>Correo</label><div class="resultado-block">{{ student.est_correo }}</div></div>
-    <div class="field-row"><label>Teléfono</label><div class="resultado-block">{{ student.est_telefono }}</div></div>
-  </div>
+  <div class="row-flex">
+    <!-- Estudiante -->
+    <div class="col-left section">
+      <h3>Datos del Estudiante</h3>
+      <div class="field-row"><label>Nombre</label><div class="resultado-block">{{ student.est_nombre }}</div></div>
+      <div class="field-row"><label>Identificación</label><div class="resultado-block">{{ student.est_identificacion }}</div></div>
+      <div class="field-row"><label>Carnet</label><div class="resultado-block">{{ student.est_carnet }}</div></div>
+      <div class="field-row"><label>Correo</label><div class="resultado-block">{{ student.est_correo }}</div></div>
+      <div class="field-row"><label>Teléfono</label><div class="resultado-block">{{ student.est_telefono }}</div></div>
+    </div>
 
-  <!-- Datos del Periodo -->
-  <div class="section">
-    <h3>Datos del Periodo</h3>
-    <div class="field-row">
-      <label>Período</label>
-      <select id="periodoSelector">
-        <option value="">-- Seleccione período --</option>
-        {% for p in periodos %}
+    <!-- Periodo -->
+    <div class="col-right section">
+      <h3>Datos del Periodo</h3>
+      <div class="field-row">
+        <label>Período</label>
+        <select id="periodoSelector">
+          <option value="">-- Seleccione período --</option>
+          {% for p in periodos %}
             <option value="{{ p }}">{{ p }}</option>
-        {% endfor %}
-      </select>
-    </div>
+          {% endfor %}
+        </select>
+      </div>
 
-    <div id="periodoInfo">
-      <!-- info del periodo cargada por JS -->
-      <div class="field-row"><label>Nombre</label><div id="p_nombre" class="resultado-block small">-</div></div>
-      <div class="field-row"><label>Estado</label><div id="p_estado" class="resultado-block small">-</div></div>
-      <div class="field-row"><label>Año</label><div id="p_anio" class="resultado-block small">-</div></div>
-      <div class="field-row"><label>Fecha Inicio</label><div id="p_inicio" class="resultado-block small">-</div></div>
-      <div class="field-row"><label>Fecha Final</label><div id="p_fin" class="resultado-block small">-</div></div>
+      <div id="periodoInfo">
+        <div class="field-row"><label>Nombre</label><div id="p_nombre" class="resultado-block small">-</div></div>
+        <div class="field-row"><label>Estado</label><div id="p_estado" class="resultado-block small">-</div></div>
+        <div class="field-row"><label>Año</label><div id="p_anio" class="resultado-block small">-</div></div>
+        <div class="field-row"><label>Fecha Inicio</label><div id="p_inicio" class="resultado-block small">-</div></div>
+        <div class="field-row"><label>Fecha Final</label><div id="p_fin" class="resultado-block small">-</div></div>
+      </div>
     </div>
   </div>
 
-  <!-- Datos de la Solicitud -->
+  <!-- Solicitud debajo -->
   <div class="section">
     <h3>Datos de la Solicitud</h3>
     <form id="solForm" enctype="multipart/form-data" method="post">
       {% csrf_token %}
-      <!-- Estudiante (readonly) -->
       <div class="field-row"><label>Nombre del Estudiante</label><input type="text" id="f_nombre" name="est_nombre" value="{{ student.est_nombre }}" readonly/></div>
       <div class="field-row" style="display:none"><label>Identificación</label><input type="text" id="f_identificacion" name="est_identificacion" value="{{ student.est_identificacion }}" readonly/></div>
-
-      <!-- Periodo (readonly, sincronizado con selector) -->
       <div class="field-row"><label>Periodo del TCU</label><input type="text" id="f_periodo" name="periodo" readonly/></div>
-
       <div class="field-row"><label>Lugar del TCU</label><input type="text" id="f_lugar" name="lugar"/></div>
       <div class="field-row"><label>Encargado del Estudiante</label><input type="text" id="f_encargado" name="encargado"/></div>
       <div class="field-row"><label>Fecha de Solicitud</label><input type="text" id="f_fecha" name="fecha_solicitud" placeholder="DD/MM/AAAA"/></div>
@@ -88,14 +207,9 @@ textarea{min-height:80px}
         </select>
       </div>
       <div class="field-row"><label>Observaciones</label><textarea id="f_observaciones" name="observaciones"></textarea></div>
+      <div class="field-row"><label>Documentos</label><input type="file" id="f_documentos" name="documentos" multiple/></div>
 
-      <div class="field-row"><label>Documentos</label>
-        <input type="file" id="f_documentos" name="documentos" multiple accept=".pdf,application/pdf, .doc, .docx, .txt, .xls, .xlsx"/>
-      </div>
-
-      <div style="margin-top:12px;text-align:right">
-        <button type="button" id="btnCrear" class="button">Crear Solicitud</button>
-      </div>
+      <button type="button" id="btnCrear" class="button">Crear Solicitud</button>
     </form>
   </div>
 </div>
