@@ -5,10 +5,98 @@
 <meta charset="UTF-8">
 <title>Buscar Estudiante</title>
 <style>
-/* estilo simple */
-body{font-family:Arial;background:#f4f6f8;padding:30px}
-.container{max-width:640px;margin:40px auto;background:white;padding:24px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.08)}
-.alert{padding:10px;background:#ffe6e6;color:#800; border-radius:6px;margin-bottom:12px}
+/* Fondo con imagen estática */
+body {
+    font-family: 'Arial', sans-serif;
+    background-image: url('https://static.vecteezy.com/system/resources/previews/009/831/146/non_2x/banner-web-template-abstract-blue-and-golden-wave-curved-lines-overlapping-layer-design-on-dark-blue-background-luxury-style-vector.jpg');
+    background-size: cover;
+    background-position: center;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Panel blanco central */
+.container {
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    width: 480px;
+    max-width: 90%;
+}
+
+/* Título */
+h2 {
+    text-align: center;
+    color: #004085;
+    margin-bottom: 24px;
+    font-size: 26px;
+    font-weight: bold;
+    border-bottom: 3px solid #007bff;
+    padding-bottom: 10px;
+}
+
+/* Alertas de mensaje */
+.alert {
+    padding: 12px;
+    background-color: #ffe6e6;
+    color: #800000;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Formulario con labels a la izquierda */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.form-row label {
+    flex: 1;
+    text-align: left;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-row input,
+.form-row select {
+    flex: 2;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+/* Botón centrado */
+button {
+    margin: 0 auto;
+    display: block;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
 </style>
 </head>
 <body>
@@ -19,7 +107,13 @@ body{font-family:Arial;background:#f4f6f8;padding:30px}
     {% endif %}
     <form method="post">
       {% csrf_token %}
-      {{ form.as_p }}
+      <!-- Renderizar cada campo manualmente para controlar label/input -->
+      {% for field in form %}
+        <div class="form-row">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+        </div>
+      {% endfor %}
       <button type="submit">Buscar</button>
     </form>
   </div>
