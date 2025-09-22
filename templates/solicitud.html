@@ -81,10 +81,10 @@ textarea{min-height:80px}
       <div class="field-row"><label>Estado</label>
         <select id="f_estado" name="estado">
           <option value="">-- Seleccione --</option>
-          <option>Pendiente</option>
-          <option>En Revisión</option>
-          <option>Aprobado</option>
-          <option>Rechazado</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="revision">En Revisión</option>
+          <option value="aprobado">Aprobado</option>
+          <option value="rechazado">Rechazado</option>
         </select>
       </div>
       <div class="field-row"><label>Observaciones</label><textarea id="f_observaciones" name="observaciones"></textarea></div>
@@ -165,9 +165,10 @@ function validarFormulario(){
         return {ok:false, msg:"Complete todos los campos obligatorios: Nombre, Periodo, Lugar, Encargado y Observaciones."};
     }
 
-    // validar fecha DD/MM/AAAA
+    // validar fecha
+    //const re = /^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
     const re = /^([0-3]\d)\/(0[1-9]|1[0-2])\/([1-9]\d{3})$/;
-    if(!re.test(fecha)) return {ok:false, msg:"Fecha inválida. Use formato DD/MM/AAAA."};
+    if(!re.test(fecha)) return {ok:false, msg:"Fecha inválida."};
 
     if(!estado) return {ok:false, msg:"Seleccione un Estado."};
     if(!archivos || archivos.length===0) return {ok:false, msg:"Adjunte al menos un archivo."};
@@ -195,7 +196,7 @@ btnCrear.addEventListener('click', async function(){
         const data = await resp.json();
         if(data.resultado === 'ok'){
             showMsg("Solicitud creada satisfactoriamente. Redirigiendo...", 'ok', 3000);
-            setTimeout(()=> window.location.href = '/buscar/', 3200);
+            setTimeout(()=> window.location.href = '/', 3200);
         } else {
             const detalle = data.detalle || "Error desconocido";
             showMsg("No se pudo crear la solicitud: " + detalle, 'error', 0);

@@ -5,13 +5,14 @@ from django.urls import reverse
 from django.conf import settings
 from django.http import JsonResponse, HttpResponseBadRequest
 from forms import BusquedaForm, SolicitudForm
+from datetime import datetime
 
 # URLs a tus endpoints Odoo
 ODOO_BASE = "http://localhost:8069"
 ODOO_API_ESTUDIANTE = f"{ODOO_BASE}/api/estudiante_api"
 ODOO_API_GET_PERIODOS = f"{ODOO_BASE}/api/get_periodos_api"
 ODOO_API_GET_PERIODOINFO = f"{ODOO_BASE}/api/get_periodoinfo_api"
-ODOO_API_CREAR_SOLICITUD = f"{ODOO_BASE}/api/crear_solicitud_api"
+ODOO_API_CREAR_SOLICITUD = f"{ODOO_BASE}/api/create_solicitud_api"
 
 
 def buscar_view(request):
@@ -117,10 +118,12 @@ def crear_solicitud_view(request):
     Endpoint Django que recibe POST con todos los campos y archivos,
     valida y reenvía a Odoo (crear_solicitud_api). Devuelve JSON al frontend.
     """
+    print("Clic btnCrear")
     if request.method != "POST":
         return HttpResponseBadRequest("Método no permitido")
-
+    print("Clic btnCrear2")
     form = SolicitudForm(request.POST, request.FILES)
+
     if not form.is_valid():
         # devolver errores como texto legible
         errors = []
@@ -133,29 +136,60 @@ def crear_solicitud_view(request):
     if len(archivos) == 0:
         return JsonResponse({"resultado": "error", "detalle": "Debe adjuntar al menos un archivo."})
 
-    # preparar payload para Odoo
+    # Preparar payload para Odoo
+    fecha_raw = form.cleaned_data['fecha_solicitud']
+
+    # si el campo del form te llega como string "22/09/2025"
+    if isinstance(fecha_raw, str):
+        fecha_dt = datetime.strptime(fecha_raw, "%d/%m/%Y")  # parsear
+        fecha_iso = fecha_dt.strftime("%Y-%m-%d")  # re-formatear
+    else:
+        # si Django ya te lo parseó como objeto date, simplemente conviértelo
+        fecha_iso = fecha_raw.strftime("%Y-%m-%d")
+
     payload = {
-        "nombre": form.cleaned_data['est_nombre'],
-        "identificacion": form.cleaned_data['est_identificacion'],
-        "carnet": form.cleaned_data.get('est_carnet', ''),
-        "correo": form.cleaned_data.get('est_correo', ''),
-        "telefono": form.cleaned_data.get('est_telefono', ''),
-        "periodo": form.cleaned_data['periodo'],
-        "lugar": form.cleaned_data['lugar'],
-        "encargado": form.cleaned_data['encargado'],
-        "fecha_solicitud": form.cleaned_data['fecha_solicitud'],
-        "estado": form.cleaned_data['estado'],
-        "observaciones": form.cleaned_data['observaciones'],
+        "sol_estudiante":        form.cleaned_data['est_nombre'],
+        "sol_periodo":       form.cleaned_data['periodo'],
+        "sol_lugar":         form.cleaned_data['lugar'],
+        "sol_encargado":     form.cleaned_data['encargado'],
+        "sol_fecha":         fecha_iso,
+        "sol_estado":        form.cleaned_data['estado'],
+        "sol_observaciones": form.cleaned_data['observaciones'],
     }
+    print("Datos a enviar a Odoo:", payload)
 
     # Enviar archivos como multipart/form-data junto con payload JSON
     files = []
-    for idx, f in enumerate(archivos):
-        # f.name, f.read()
-        # requests requires tuple (fieldname, (filename, fileobj, content_type))
-        files.append(('documentos', (f.name, f.read(), f.content_type or 'application/octet-stream')))
+    #for idx, f in enumerate(archivos):
+    #    f.name, f.read()
+    #    requests requires tuple (fieldname, (filename, fileobj, content_type))
+    #    files.append(('sol_documentos', (f.name, f.read(), f.content_type or 'application/octet-stream')))
 
     # Mandar a Odoo
+    try:
+        resp = requests.post(ODOO_API_CREAR_SOLICITUD, data=payload, timeout=8)
+        if resp.status_code == 200:
+            return JsonResponse({"resultado": "ok", "detalle": "Solicitud creada correctamente"})
+        else:
+            return JsonResponse(
+                {"resultado": "error", "detalle": f"API Odoo respondió {resp.status_code}: {resp.text}"})
+    except Exception as e:
+        return JsonResponse({"resultado": "error", "detalle": f"Error conectando con API: {e}"})
+    """
+    try:
+        resp = requests.post(
+            ODOO_API_CREAR_SOLICITUD,
+            data=payload,
+            timeout=8
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            return JsonResponse(data)
+        else:
+            return JsonResponse({"resultado": "error", "detalle": f"Error conectando con API: {resp.text}"})
+    except Exception as e:
+        return JsonResponse({"resultado": "error", "detalle": f"Error conectando con API: {e}"})
+    
     try:
         # enviamos payload como campo 'data' JSON + archivos
         multipart = {
@@ -170,6 +204,11 @@ def crear_solicitud_view(request):
         for file_tuple in files:
             files_param.append(file_tuple)
 
+        # Imprimimos para revisar los datos que se envian a Odoo
+        print("Datos a enviar a Odoo:", payload)
+        #for file_tuple in files:
+        #    print("Archivos:", file_tuple[1])
+
         od_resp = requests.post(ODOO_API_CREAR_SOLICITUD, files=files_param, timeout=20)
         if od_resp.status_code == 200:
             od_json = od_resp.json()
@@ -178,3 +217,4 @@ def crear_solicitud_view(request):
             return JsonResponse({"resultado": "error", "detalle": f"API Odoo respondió {od_resp.status_code}"})
     except Exception as e:
         return JsonResponse({"resultado": "error", "detalle": f"Error conectando con API: {e}"})
+    """

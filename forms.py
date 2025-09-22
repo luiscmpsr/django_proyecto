@@ -2,10 +2,10 @@
 from django import forms
 
 ESTADOS = [
-    ('Pendiente', 'Pendiente'),
-    ('En Revisión', 'En Revisión'),
-    ('Aprobado', 'Aprobado'),
-    ('Rechazado', 'Rechazado'),
+    ('pendiente', 'Pendiente'),
+    ('revision',  'En Revisión'),
+    ('aprobado',  'Aprobado'),
+    ('rechazado', 'Rechazado'),
 ]
 
 class BusquedaForm(forms.Form):
